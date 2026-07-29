@@ -4,7 +4,8 @@ const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u0
 
 export function routeContext(request: AssistantRequest): RoutedRequest {
   const query = normalize(request.message)
-  const followUp = /^(e\b|e quem|e qual|e como|quem e|qual e|e os|e as|e energia|e sobre|nessa area|nessa tarefa)/.test(query) && request.previous?.intent
+  const followUp = (/^(e\b|e quem|e qual|e como|quem e|qual e|e os|e as|e energia|e sobre|nessa area|nessa tarefa)/.test(query)
+    || /(dessa|desta|nessa) (area|tarefa)|\bdela\b/.test(query)) && request.previous?.intent
   if (followUp) return { intent: 'FOLLOW_UP', query: request.message, entityHint: request.previous?.entity_label ?? null, previous: request.previous }
   if (/(quem (e|esta|ficou)|responsavel|responsabilidade|a cargo)/.test(query)) return { intent: 'RESPONSIBLE', query: request.message, entityHint: extractHint(request.message), previous: request.previous }
   if (/(proximas? acoes|o que fazer|por onde comecar|plano de acao)/.test(query)) return { intent: 'NEXT_ACTIONS', query: request.message, entityHint: extractHint(request.message), previous: request.previous }

@@ -14,7 +14,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     enabled: Boolean(user),
     queryFn: async () => {
       const client = requireSupabase()
-      const { data: memberships, error } = await client.from('project_members').select('*').eq('user_id', user!.id).eq('active', true)
+      const { data: memberships, error } = await client.from('project_members').select('*').eq('user_id', user!.id).eq('active', true).order('joined_at', { ascending: true, nullsFirst: false }).order('id').limit(1)
       if (error) throw error
       if (!memberships.length) return { project: null, membership: null }
       const membership = memberships[0]

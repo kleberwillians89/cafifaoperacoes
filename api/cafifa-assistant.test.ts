@@ -5,17 +5,19 @@ import { HttpError, type AuthContext } from './_lib/auth.js'
 import { resetRateLimitsForTests } from './_lib/rate-limit.js'
 import type { AssistantResponse, OperationalContext } from './_lib/schemas.js'
 
-const auth = { user: { id: '00000000-0000-0000-0000-000000000001' }, project: { id: '00000000-0000-0000-0000-000000000002' }, client: {} } as unknown as AuthContext
+const auth = { user: { id: '00000000-0000-0000-0000-000000000001' }, project: { id: '11111111-1111-4111-8111-111111111112' }, client: {} } as unknown as AuthContext
 const context = { request_type: 'TODAY' } as unknown as OperationalContext
 const answer: AssistantResponse = { type: 'answer', message: 'Resposta baseada nos dados.', headline: null, severity: 'info', facts: [], findings: [], references: [], suggested_questions: [] }
-const buildContext = vi.fn(async () => ({ context, focus: { type: null, id: null, label: null } }))
+const projectId = '11111111-1111-4111-8111-111111111112'
+const buildContext = vi.fn(async () => ({ context, focus: { type: null, id: null, label: null }, counts: { areas: 12, tasks: 168 } }))
 const authenticate = vi.fn(async () => auth)
 const askModel = vi.fn(async () => answer)
 
 function execute(body: unknown, authorization = 'Bearer valid', handler = createAssistantHandler({ authenticate, buildContext, askModel })) {
   let status = 200
   let payload: unknown
-  const req = { method: 'POST', body, headers: { authorization } } as VercelRequest
+  const completeBody = body && typeof body === 'object' ? { active_project_id: projectId, ...body } : body
+  const req = { method: 'POST', body: completeBody, headers: { authorization } } as VercelRequest
   const res = {
     status(code: number) { status = code; return this },
     json(value: unknown) { payload = value; return this },
@@ -47,6 +49,8 @@ describe('assistant endpoint', () => {
     expect(askModel).toHaveBeenCalledOnce()
     expect(JSON.stringify(result.payload)).toContain('"response_source":"openai"')
     expect(JSON.stringify(result.payload)).toContain('"fallback_used":false')
+    expect(JSON.stringify(result.payload)).toContain('"source":"openai"')
+    expect(authenticate).toHaveBeenCalledWith('Bearer valid', projectId)
   })
   it('rejeita saída inválida da IA', async () => {
     askModel.mockResolvedValueOnce({ message: 'inválida' } as AssistantResponse)

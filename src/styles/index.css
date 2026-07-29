@@ -225,6 +225,7 @@ h1, h2, h3 { font-family: 'Manrope', sans-serif; }
 .center-assistant { overflow: hidden; background: white; border: 1px solid var(--line); border-radius: 20px; }.center-assistant > header { margin: 0; padding: 16px 20px; border-bottom: 1px solid var(--line); }.center-assistant > header button { display: inline-flex; padding: 8px 11px; align-items: center; gap: 6px; color: var(--blue); background: var(--blue-soft); border: 0; border-radius: 8px; cursor: pointer; font-size: .65rem; font-weight: 700; }.center-assistant .assistant-panel--page { height: 680px; border: 0; border-radius: 0; }.center-assistant .assistant-panel > header { display: none; }
 .assistant-header-actions { display: flex; align-items: center; gap: 8px; }.assistant-diagnostic { display: inline-flex !important; width: auto !important; padding: 7px 9px !important; align-items: center; gap: 6px; color: var(--blue) !important; background: var(--blue-soft) !important; border-radius: 8px !important; font-size: .6rem; }.assistant-diagnostic:disabled { opacity: .5; }
 .assistant-reference-block > strong { display: block; margin: 12px 0 7px; color: var(--muted); font-size: .58rem; letter-spacing: .08em; text-transform: uppercase; }
+.assistant-slow { padding: 9px 11px; color: #765715; background: #fff7df; border: 1px solid #ead697; border-radius: 9px; font-size: .66rem; }
 
 /* Busca global */
 .command-layer { position: fixed; z-index: 120; inset: 0; display: grid; padding: 11vh 18px 18px; place-items: start center; background: rgba(0,34,48,.57); backdrop-filter: blur(5px); }

@@ -16,7 +16,7 @@ type Dependencies = {
 
 function defaultAskModel() {
   const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) throw new HttpError(500, 'Assistente temporariamente indisponível.')
+  if (!apiKey) throw new HttpError(500, 'Assistente temporariamente indisponível.', 'ASSISTANT_OPENAI_NOT_CONFIGURED', 'openai')
   const client = new OpenAI({ apiKey, timeout: Number(process.env.ASSISTANT_TIMEOUT_MS ?? 25_000), maxRetries: 1 })
   return async ({ context, message, history }: { context: unknown; message: string; history: { role: 'user' | 'assistant'; content: string }[] }) => {
     const response = await client.responses.parse({
@@ -28,8 +28,11 @@ function defaultAskModel() {
       ],
       text: { format: zodTextFormat(AssistantResponseSchema, 'cafifa_operational_response') },
     })
-    if (!response.output_parsed) throw new Error('invalid_model_output')
-    return AssistantResponseSchema.parse(response.output_parsed)
+    if (!response.output_parsed) throw new HttpError(502, 'A resposta inteligente não pôde ser validada.', 'ASSISTANT_OPENAI_PARSE_FAILED', 'parse')
+    const parsed = AssistantResponseSchema.safeParse(response.output_parsed)
+    if (!parsed.success) throw new HttpError(502, 'A resposta inteligente não pôde ser validada.', 'ASSISTANT_OPENAI_PARSE_FAILED', 'parse')
+    console.info(JSON.stringify({ event: 'cafifa_openai_response', model: process.env.OPENAI_MODEL || 'gpt-5', response_id_present: Boolean(response.id) }))
+    return parsed.data
   }
 }
 
@@ -42,9 +45,9 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.', request_id: requestId })
       const parsed = AssistantRequestSchema.safeParse(req.body)
-      if (!parsed.success) return res.status(400).json({ error: 'Pedido inválido. Verifique a mensagem enviada.', request_id: requestId })
+      if (!parsed.success) return res.status(400).json({ error: 'Pedido inválido. Verifique a mensagem enviada.', code: 'ASSISTANT_INVALID_BODY', request_id: requestId })
       const authenticate = overrides.authenticate ?? authenticateRequest
-      const auth = await authenticate(req.headers.authorization)
+      const auth = await authenticate(req.headers.authorization, parsed.data.active_project_id)
       audit = { user_id: auth.user.id, project_id: auth.project.id }
       const fingerprint = `${parsed.data.message}:${parsed.data.previous?.entity_id ?? ''}`
       const rate = checkRateLimit(auth.user.id, fingerprint)
@@ -55,7 +58,8 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
       const route = routeContext(parsed.data)
       audit.intent = route.intent
       const buildContext = overrides.buildContext ?? buildOperationalContext
-      const { context, focus } = await buildContext({ client: auth.client, project: auth.project, userId: auth.user.id, route })
+      const { context, focus, counts = {} } = await buildContext({ client: auth.client, project: auth.project, userId: auth.user.id, route })
+      if (!Number(counts.tasks ?? context.tasks.length) && !Number(counts.areas ?? context.areas.length)) throw new HttpError(422, 'Não há contexto operacional disponível para este projeto.', 'ASSISTANT_CONTEXT_EMPTY', 'context')
       let answer: AssistantResponse
       let responseSource: 'openai' | 'operational_snapshot' | 'operational_fallback'
       let fallbackUsed = false
@@ -68,7 +72,8 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
           answer = AssistantResponseSchema.parse(await askModel({ context, message: parsed.data.message, history: parsed.data.history.slice(-6) }))
           responseSource = 'openai'
         } catch (error) {
-          console.info(JSON.stringify({ request_id: requestId, status: 'ai_fallback', error: sanitizeError(error) }))
+          const code = error instanceof HttpError ? error.code : error instanceof Error && /invalid_model_output|Zod/i.test(error.message) ? 'ASSISTANT_OPENAI_PARSE_FAILED' : 'ASSISTANT_OPENAI_REQUEST_FAILED'
+          console.info(JSON.stringify({ event: 'cafifa_assistant_error', request_id: requestId, stage: error instanceof HttpError ? error.stage : 'openai', code, status: error instanceof HttpError ? error.status : 502 }))
           answer = buildOperationalFallback(context, true)
           responseSource = 'operational_fallback'
           fallbackUsed = true
@@ -81,14 +86,17 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
         duration: Date.now() - startedAt,
       })
       logRequest({ requestId, ...audit, duration: Date.now() - startedAt, status: 200 })
-      return res.status(200).json({ ...answer, request_id: requestId, context: { intent: route.intent, focus }, meta: { response_source: responseSource, fallback_used: fallbackUsed } })
+      console.info(JSON.stringify({ event: 'cafifa_assistant_request', request_id: requestId, authenticated: true, project_validated: true, context_built: true, context_counts: counts, openai_called: responseSource !== 'operational_snapshot', openai_success: responseSource === 'openai', source: responseSource === 'operational_fallback' ? 'fallback' : responseSource, status: 200, duration_ms: Date.now() - startedAt }))
+      return res.status(200).json({ ...answer, source: responseSource === 'operational_fallback' ? 'fallback' : responseSource, request_id: requestId, context: { intent: route.intent, focus }, meta: { response_source: responseSource, fallback_used: fallbackUsed } })
     } catch (error) {
       const status = error instanceof HttpError ? error.status : isTimeout(error) ? 504 : 500
       const publicMessage = error instanceof HttpError ? error.message : status === 504
         ? 'A consulta demorou mais que o esperado. Tente novamente.'
         : 'Não foi possível consultar a Central Operacional agora. Tente novamente em alguns instantes.'
       logRequest({ requestId, ...audit, duration: Date.now() - startedAt, status, error: sanitizeError(error) })
-      return res.status(status).json({ error: publicMessage, request_id: requestId })
+      const code = error instanceof HttpError ? error.code : status === 504 ? 'ASSISTANT_OPENAI_REQUEST_FAILED' : 'ASSISTANT_RESPONSE_INVALID'
+      console.info(JSON.stringify({ event: 'cafifa_assistant_error', request_id: requestId, stage: error instanceof HttpError ? error.stage : 'response', code, status }))
+      return res.status(status).json({ error: publicMessage, code, request_id: requestId })
     }
   }
 }

@@ -8,7 +8,7 @@ type BuilderInput = { client: SupabaseClient<Database>; project: Project; userId
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 const compactTask = (task: Task, stageName: string | null) => ({ id: task.id, title: task.title, area_id: task.area_id, stage_id: task.stage_id, stage_name: stageName, task_type: task.task_type, status: task.status, priority: task.priority, due_date: task.due_date, completion_percentage: task.completion_percentage, blocked_reason: task.blocked_reason, evidence_required: task.evidence_required, primary_responsible_user_id: task.primary_responsible_user_id, operational_responsible: task.original_responsible_label })
 
-export async function buildOperationalContext({ client, project, userId, route }: BuilderInput): Promise<{ context: OperationalContext; focus: { type: 'area' | 'task' | 'milestone' | 'risk' | null; id: string | null; label: string | null } }> {
+export async function buildOperationalContext({ client, project, userId, route }: BuilderInput): Promise<{ context: OperationalContext; focus: { type: 'area' | 'task' | 'milestone' | 'risk' | null; id: string | null; label: string | null }; counts: Record<string, number> }> {
   const date = getOperationalDate()
   const [areasResult, stagesResult, tasksResult, milestonesResult, risksResult, evidenceResult, membersResult, linksResult] = await Promise.all([
     client.from('areas').select('*').eq('project_id', project.id).eq('active', true).order('sort_order'),
@@ -105,6 +105,18 @@ export async function buildOperationalContext({ client, project, userId, route }
 
   return {
     focus,
+    counts: {
+      areas: areas.length,
+      tasks: tasks.length,
+      overdue: tasks.filter((task) => task.due_date && task.due_date < date.iso_date && !['completed', 'cancelled'].includes(task.status)).length,
+      due_today: tasks.filter((task) => task.due_date === date.iso_date && !['completed', 'cancelled'].includes(task.status)).length,
+      critical: tasks.filter((task) => task.priority === 'critical' && !['completed', 'cancelled'].includes(task.status)).length,
+      blocked: tasks.filter((task) => task.status === 'blocked').length,
+      unassigned: tasks.filter((task) => !task.primary_responsible_user_id && !['completed', 'cancelled'].includes(task.status)).length,
+      milestones: milestones.length,
+      evidences: evidences.length,
+      history: historyResult.data.length,
+    },
     context: {
       request_type: route.intent,
       current_date: date,
