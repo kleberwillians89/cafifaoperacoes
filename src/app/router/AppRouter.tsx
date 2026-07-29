@@ -8,6 +8,7 @@ import { StagesPage } from '@/pages/StagesPage'
 import { TasksPage } from '@/pages/TasksPage'
 import { TaskDetailPage } from '@/pages/TaskDetailPage'
 import { AdministrationPage, AreasPage, EvidencePage, HistoryPage, MilestonesPage, ProjectPage, RisksPage, TeamPage } from '@/pages/ManagementPages'
+import { AssistantPage } from '@/pages/AssistantPage'
 
 export function AppRouter() {
   return (
@@ -20,6 +21,7 @@ export function AppRouter() {
         <Route path="/app" element={<AppShell />}>
           <Route index element={<Navigate to="/app/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="assistente" element={<AssistantPage />} />
           <Route path="projeto" element={<ProjectPage />} />
           <Route path="etapas" element={<StagesPage />} />
           <Route path="minhas-tarefas" element={<TasksPage mine />} />

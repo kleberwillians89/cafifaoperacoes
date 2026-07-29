@@ -1,12 +1,13 @@
 import {
   Archive, CalendarDays, CircleGauge, Flag, FolderOpen, History, LayoutList,
-  Map, Settings, ShieldCheck, Users, TriangleAlert, BriefcaseBusiness, type LucideIcon,
+  Map, Settings, ShieldCheck, Users, TriangleAlert, BriefcaseBusiness, Sparkles, type LucideIcon,
 } from 'lucide-react'
 
 export type NavigationItem = { label: string; to: string; icon: LucideIcon; adminOnly?: boolean }
 
 export const navigationItems: NavigationItem[] = [
   { label: 'Dashboard', to: '/app/dashboard', icon: CircleGauge },
+  { label: 'Assistente CAFIFA', to: '/app/assistente', icon: Sparkles },
   { label: 'Projeto', to: '/app/projeto', icon: BriefcaseBusiness },
   { label: 'Minhas tarefas', to: '/app/minhas-tarefas', icon: LayoutList },
   { label: 'Todas as tarefas', to: '/app/tarefas', icon: Archive },

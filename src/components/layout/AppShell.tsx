@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { MobileNavigation } from './MobileNavigation'
 import { Sidebar } from './Sidebar'
+import { AssistantLauncher } from '@/features/assistant/components/AssistantLauncher'
 
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -14,6 +15,7 @@ export function AppShell() {
         <main className="app-content"><Outlet /></main>
       </div>
       <MobileNavigation open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <AssistantLauncher />
     </div>
   )
 }
