@@ -129,8 +129,8 @@ function isTimeout(error: unknown) {
 }
 function logRuntimeConfiguration() {
   console.info(JSON.stringify({
-    supabase_url_configured: Boolean(process.env.SUPABASE_URL),
-    supabase_anon_configured: Boolean(process.env.SUPABASE_ANON_KEY),
+    supabase_url_configured: Boolean(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
+    supabase_anon_configured: Boolean(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY),
     openai_configured: Boolean(process.env.OPENAI_API_KEY),
     model_configured: Boolean(process.env.OPENAI_MODEL),
   }))

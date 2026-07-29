@@ -18,8 +18,10 @@ export async function authenticateRequest(authorization: string | undefined): Pr
   const token = authorization.slice(7).trim()
   if (!token) throw new HttpError(401, 'Sessão ausente ou inválida.')
   if (token.split('.').length !== 3) throw new HttpError(401, 'Sessão expirada ou inválida.')
-  const url = process.env.SUPABASE_URL
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const anonKey = process.env.SUPABASE_ANON_KEY
+    || process.env.VITE_SUPABASE_PUBLISHABLE_KEY
+    || process.env.VITE_SUPABASE_ANON_KEY
   if (!url || !anonKey) throw new HttpError(500, 'Configuração interna indisponível.')
 
   const authClient = createClient<Database>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } })
