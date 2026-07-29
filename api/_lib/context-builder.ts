@@ -49,7 +49,8 @@ export async function buildOperationalContext({ client, project, userId, route }
   let selectedEvidence = evidences
   let focus: { type: 'area' | 'task' | 'milestone' | 'risk' | null; id: string | null; label: string | null } = { type: null, id: null, label: null }
 
-  if ((route.intent === 'AREA' || route.intent === 'FOLLOW_UP') && focusArea) {
+  const entityFocusedIntent = ['AREA', 'RESPONSIBLE', 'SUMMARY', 'NEXT_ACTIONS', 'PRIORITY', 'EVIDENCE', 'SEARCH', 'FOLLOW_UP']
+  if (entityFocusedIntent.includes(route.intent) && focusArea) {
     selectedAreas = [focusArea]; selectedTasks = tasks.filter((task) => task.area_id === focusArea.id)
     const ids = new Set(selectedTasks.map((task) => task.id))
     const milestoneIds = new Set(taskMilestoneLinks.filter((link) => ids.has(link.task_id)).map((link) => link.milestone_id))
@@ -57,7 +58,7 @@ export async function buildOperationalContext({ client, project, userId, route }
     selectedEvidence = evidences.filter((item) => item.task_id && ids.has(item.task_id))
     selectedRisks = []
     focus = { type: 'area', id: focusArea.id, label: focusArea.name }
-  } else if ((route.intent === 'TASK' || route.intent === 'FOLLOW_UP') && focusTask) {
+  } else if ((['TASK', 'RESPONSIBLE', 'SUMMARY', 'NEXT_ACTIONS', 'PRIORITY', 'EVIDENCE', 'SEARCH', 'FOLLOW_UP'].includes(route.intent)) && focusTask) {
     selectedTasks = [focusTask]; selectedAreas = areas.filter((area) => area.id === focusTask.area_id)
     selectedMilestones = milestones.filter((item) => taskMilestoneLinks.some((link) => link.task_id === focusTask.id && link.milestone_id === item.id))
     selectedEvidence = evidences.filter((item) => item.task_id === focusTask.id)
@@ -77,6 +78,13 @@ export async function buildOperationalContext({ client, project, userId, route }
     selectedMilestones = milestones.filter((item) => item.status !== 'completed').slice(0, 6)
     selectedRisks = risks.filter((item) => !['closed', 'mitigated'].includes(item.status)).slice(0, 6)
     selectedEvidence = findEvidenceGaps(intelligence).slice(0, 8).flatMap((task) => evidences.filter((item) => item.task_id === task.id))
+    if (route.intent === 'OVERDUE') selectedTasks = tasks.filter((task) => task.due_date && task.due_date < date.iso_date && !['completed', 'cancelled'].includes(task.status)).slice(0, 20)
+    if (route.intent === 'BLOCKED') selectedTasks = tasks.filter((task) => task.status === 'blocked').slice(0, 20)
+    if (route.intent === 'EVIDENCE') {
+      const gapIds = new Set(findEvidenceGaps(intelligence).map((task) => task.id))
+      selectedTasks = tasks.filter((task) => gapIds.has(task.id)).slice(0, 20)
+      selectedEvidence = evidences.filter((item) => item.task_id && gapIds.has(item.task_id)).slice(0, 20)
+    }
   }
 
   const relevantTaskIds = selectedTasks.map((task) => task.id)
@@ -92,7 +100,7 @@ export async function buildOperationalContext({ client, project, userId, route }
   if (detailError) throw detailError
   const profiles = profilesResult.data as Profile[]
   const areaViews = selectedAreas.map((area) => buildAreaOperationalView(area, intelligence))
-  const summary = route.intent === 'AREA' && focusArea ? buildAreaOperationalView(focusArea, intelligence)
+  const summary = focusArea ? buildAreaOperationalView(focusArea, intelligence)
     : route.intent === 'TODAY' ? buildTodayOperationalView(intelligence) : buildExecutiveOperationalView(intelligence)
 
   return {
@@ -117,7 +125,7 @@ export async function buildOperationalContext({ client, project, userId, route }
       operational_findings: [
         ...findUpcomingMilestoneRisks(intelligence).map((item) => ({ type: 'fact', message: `Marco próximo: ${item.title}`, entity_id: item.id })),
         { type: 'calculation', message: `Contexto reduzido para ${selectedTasks.length} de ${tasks.length} tarefas visíveis pela RLS.` },
-        { type: 'fact', message: `Consulta executada em nome do usuário ${userId}.` },
+        { type: 'fact', message: 'Consulta executada com a sessão autenticada e limitada pela RLS.' },
       ],
     },
   }

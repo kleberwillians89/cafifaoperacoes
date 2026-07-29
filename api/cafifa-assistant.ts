@@ -117,10 +117,10 @@ export function buildOperationalFallback(context: OperationalContext, degraded: 
     : 'Nenhuma ação prioritária foi identificada nos dados visíveis.'
   return {
     type: 'answer',
-    headline: degraded ? 'Dados operacionais atualizados' : 'Hoje na operação',
+    headline: degraded ? 'Diagnóstico operacional calculado' : 'Hoje na operação',
     severity: Number(summary.overdue_tasks ?? 0) || Number(summary.red_areas ?? 0) ? 'attention' : 'info',
     message: degraded
-      ? `A análise inteligente está temporariamente indisponível, mas os dados operacionais atualizados estão disponíveis abaixo.\n\nPrioridades calculadas pelo servidor:\n${priorityText}`
+      ? `Análise Inteligente temporariamente indisponível.\n\nExibindo diagnóstico operacional calculado pelo sistema.\n\nPrioridades calculadas pelo servidor:\n${priorityText}`
       : `Visão objetiva de ${String(date.weekday ?? 'hoje')}, com prioridades calculadas pelo servidor.\n\nAções prioritárias:\n${priorityText}`,
     facts,
     findings: [

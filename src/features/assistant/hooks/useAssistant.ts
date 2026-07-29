@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { askAssistant } from '../services/assistant.service'
 import type { AssistantAnswer, ChatMessage } from '../types'
+import { selectRelevantHistory, updateContextMemory } from '../utils/context-memory'
 
 export const INITIAL_QUESTIONS = [
   'O que preciso fazer hoje?',
@@ -26,7 +27,7 @@ export function useAssistant() {
     setLoading(true)
     void askAssistant('Carregue o resumo de hoje na operação.', [], null, controller.signal, true)
       .then((answer) => {
-        previous.current = answer.context ?? previous.current
+        previous.current = updateContextMemory(previous.current, answer)
         setMessages([{ id: crypto.randomUUID(), role: 'assistant', content: answer.message, answer }])
       })
       .catch((error) => {
@@ -43,14 +44,14 @@ export function useAssistant() {
   const send = useCallback(async (question: string) => {
     const clean = question.trim()
     if (!clean || clean.length > 4_000 || loading || clean === lastQuestion) return
-    const history = messages.slice(-6)
+    const history = selectRelevantHistory(messages)
     const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: clean }
     setMessages((current) => [...current, userMessage])
     setLoading(true); setLastQuestion(clean)
     const controller = new AbortController(); activeRequest.current = controller
     try {
       const answer = await askAssistant(clean, history, previous.current, controller.signal)
-      previous.current = answer.context ?? previous.current
+      previous.current = updateContextMemory(previous.current, answer)
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content: answer.message, answer }])
     } catch (error) {
       const content = error instanceof Error ? error.message : 'Não foi possível consultar o Assistente CAFIFA.'

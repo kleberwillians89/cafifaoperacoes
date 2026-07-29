@@ -1,27 +1,44 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { DevelopmentAuthGuard } from '@/features/auth/DevelopmentAuthGuard'
 import { ForgotPasswordPage, LoginPage, ResetPasswordPage } from '@/pages/AuthPages'
-import { DashboardPage } from '@/pages/DashboardPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
-import { StagesPage } from '@/pages/StagesPage'
-import { TasksPage } from '@/pages/TasksPage'
-import { TaskDetailPage } from '@/pages/TaskDetailPage'
-import { AdministrationPage, AreasPage, EvidencePage, HistoryPage, MilestonesPage, ProjectPage, RisksPage, TeamPage } from '@/pages/ManagementPages'
-import { AssistantPage } from '@/pages/AssistantPage'
-import { AreaDetailPage, MilestoneDetailPage, RiskDetailPage } from '@/pages/OperationalDetailPages'
+import { LoadingState } from '@/components/ui/LoadingState'
+
+const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
+const StagesPage = lazy(() => import('@/pages/StagesPage').then((module) => ({ default: module.StagesPage })))
+const TasksPage = lazy(() => import('@/pages/TasksPage').then((module) => ({ default: module.TasksPage })))
+const TaskDetailPage = lazy(() => import('@/pages/TaskDetailPage').then((module) => ({ default: module.TaskDetailPage })))
+const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((module) => ({ default: module.AssistantPage })))
+const OperationsCenterPage = lazy(() => import('@/pages/OperationsCenterPage').then((module) => ({ default: module.OperationsCenterPage })))
+const management = () => import('@/pages/ManagementPages')
+const ProjectPage = lazy(() => management().then((module) => ({ default: module.ProjectPage })))
+const TeamPage = lazy(() => management().then((module) => ({ default: module.TeamPage })))
+const AreasPage = lazy(() => management().then((module) => ({ default: module.AreasPage })))
+const MilestonesPage = lazy(() => management().then((module) => ({ default: module.MilestonesPage })))
+const RisksPage = lazy(() => management().then((module) => ({ default: module.RisksPage })))
+const EvidencePage = lazy(() => management().then((module) => ({ default: module.EvidencePage })))
+const HistoryPage = lazy(() => management().then((module) => ({ default: module.HistoryPage })))
+const AdministrationPage = lazy(() => management().then((module) => ({ default: module.AdministrationPage })))
+const details = () => import('@/pages/OperationalDetailPages')
+const AreaDetailPage = lazy(() => details().then((module) => ({ default: module.AreaDetailPage })))
+const MilestoneDetailPage = lazy(() => details().then((module) => ({ default: module.MilestoneDetailPage })))
+const RiskDetailPage = lazy(() => details().then((module) => ({ default: module.RiskDetailPage })))
 
 export function AppRouter() {
   return (
+    <Suspense fallback={<LoadingState />}>
     <Routes>
-      <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/app/central" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
       <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
       <Route path="/assistente" element={<Navigate to="/app/assistente" replace />} />
       <Route element={<DevelopmentAuthGuard />}>
         <Route path="/app" element={<AppShell />}>
-          <Route index element={<Navigate to="/app/dashboard" replace />} />
+          <Route index element={<Navigate to="/app/central" replace />} />
+          <Route path="central" element={<OperationsCenterPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="assistente" element={<AssistantPage />} />
           <Route path="projeto" element={<ProjectPage />} />
@@ -44,5 +61,6 @@ export function AppRouter() {
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </Suspense>
   )
 }

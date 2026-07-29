@@ -1,6 +1,10 @@
 import { z } from 'zod'
 
-export const IntentSchema = z.enum(['TODAY', 'AREA', 'TASK', 'MILESTONE', 'RISK', 'EXECUTIVE', 'FOLLOW_UP', 'UNKNOWN'])
+export const IntentSchema = z.enum([
+  'TODAY', 'AREA', 'TASK', 'MILESTONE', 'RISK', 'RESPONSIBLE', 'SUMMARY',
+  'PRIORITY', 'EXECUTIVE', 'NEXT_ACTIONS', 'OVERDUE', 'BLOCKED', 'EVIDENCE',
+  'SEARCH', 'FOLLOW_UP', 'UNKNOWN',
+])
 export type Intent = z.infer<typeof IntentSchema>
 
 export const EntityReferenceSchema = z.object({

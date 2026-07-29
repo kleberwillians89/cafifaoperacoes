@@ -6,6 +6,7 @@ import {
 export type NavigationItem = { label: string; to: string; icon: LucideIcon; adminOnly?: boolean }
 
 export const navigationItems: NavigationItem[] = [
+  { label: 'Central Operacional', to: '/app/central', icon: BriefcaseBusiness },
   { label: 'Dashboard', to: '/app/dashboard', icon: CircleGauge },
   { label: 'Assistente CAFIFA', to: '/app/assistente', icon: Sparkles },
   { label: 'Projeto', to: '/app/projeto', icon: BriefcaseBusiness },

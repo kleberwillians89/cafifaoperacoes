@@ -8,5 +8,8 @@ export function useOperationalRelations() {
     queryKey: ['operational-relations', project?.id],
     enabled: Boolean(project),
     queryFn: () => getOperationalRelations(project!.id),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   })
 }
