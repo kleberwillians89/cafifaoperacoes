@@ -8,11 +8,12 @@ function AuthLayout({ eyebrow, title, description, children }: { eyebrow: string
   return (
     <main className="auth-page">
       <section className="auth-intro">
-        <div className="brand brand--light"><img className="brand__logo" src="/logocafifa.png" alt="Cafifa — movimento coletivo" /><span className="brand__product">Operações</span></div>
+        <div className="brand brand--light"><img className="brand__logo" src="/santo-circuito-logo.png" alt="Santo Circuito" /><span className="brand__product">Operações</span></div>
         <div><span>11 · OUT · 2026</span><h1>Operação clara.<br /><em>Execução em movimento.</em></h1><p>I Corrida de São Francisco<br />Fernando de Noronha</p></div>
         <small>Plataforma privada · acesso somente por convite</small>
       </section>
       <section className="auth-panel">
+        <img className="auth-mobile-logo" src="/santo-circuito-logo.png" alt="Santo Circuito Operações" />
         <div className="auth-card">
           <span className="eyebrow">{eyebrow}</span><h2>{title}</h2><p>{description}</p>
           {!isSupabaseConfigured && <div className="config-notice">Configure as variáveis do Supabase para ativar este fluxo. A interface permanece disponível para desenvolvimento.</div>}

@@ -24,7 +24,7 @@ export function OperationalMapRegion({ data }: { data: CentralData }) {
   const areas = data.areas.map((area) => ({ area, health: areaHealth(data.tasks.filter((task) => task.area_id === area.id), data.evidence) })).sort((a, b) => healthRank[a.health.level] - healthRank[b.health.level])
   const toggle = (id: string) => setExpanded((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
   return <article className="panel operational-map"><header><div><Map/><span><strong>Mapa operacional</strong><small>Projeto, áreas, etapas e entregas</small></span></div><Link to="/app/areas">Ver áreas</Link></header>
-    <div className="map-root"><strong>CAFIFA</strong><span>{data.tasks.length} tarefas oficiais</span></div>
+    <div className="map-root"><strong>Santo Circuito</strong><span>{data.tasks.length} tarefas oficiais</span></div>
     {!areas.length && <p className="empty-inline">Nenhuma área operacional disponível.</p>}
     {areas.map(({ area, health }) => {
       const areaTasks = data.tasks.filter((task) => task.area_id === area.id)
@@ -58,5 +58,5 @@ export function TimelineRegion({ data }: { data: CentralData }) {
 }
 
 export function AssistantRegion() {
-  return <section className="center-assistant"><header><div><Bot/><span><strong>Diretor de Operações CAFIFA</strong><small>Contexto real, referências e memória curta</small></span></div><button onClick={() => document.body.classList.toggle('executive-mode')}><Presentation size={16}/> Modo Executivo</button></header><AssistantPanel fullPage/></section>
+  return <section className="center-assistant"><header><div><Bot/><span><strong>Diretor de Operações Santo Circuito</strong><small>Contexto real, referências e memória curta</small></span></div><button onClick={() => document.body.classList.toggle('executive-mode')}><Presentation size={16}/> Modo Executivo</button></header><AssistantPanel fullPage/></section>
 }

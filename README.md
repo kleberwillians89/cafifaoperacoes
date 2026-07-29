@@ -1,4 +1,4 @@
-# CAFIFA Operações
+# Santo Circuito Operações
 
 Aplicação React/TypeScript para gestão da operação da I Corrida de São Francisco — Noronha 2026.
 

@@ -8,7 +8,7 @@ export type NavigationItem = { label: string; to: string; icon: LucideIcon; admi
 export const navigationItems: NavigationItem[] = [
   { label: 'Central Operacional', to: '/app/central', icon: BriefcaseBusiness },
   { label: 'Dashboard', to: '/app/dashboard', icon: CircleGauge },
-  { label: 'Assistente CAFIFA', to: '/app/assistente', icon: Sparkles },
+  { label: 'Assistente Santo Circuito', to: '/app/assistente', icon: Sparkles },
   { label: 'Projeto', to: '/app/projeto', icon: BriefcaseBusiness },
   { label: 'Minhas tarefas', to: '/app/minhas-tarefas', icon: LayoutList },
   { label: 'Todas as tarefas', to: '/app/tarefas', icon: Archive },

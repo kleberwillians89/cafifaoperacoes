@@ -65,7 +65,7 @@ export async function executeAssistantRequest(dependencies: AssistantDependencie
   if (!response.ok) {
     if (response.status === 401) throw new AssistantClientError('ASSISTANT_SESSION_INVALID', 'Sua sessão expirou. Entre novamente.')
     if (response.status === 403) throw new AssistantClientError(payload.code ?? 'ASSISTANT_PROJECT_ACCESS_DENIED', 'Seu usuário não possui acesso ao projeto selecionado.')
-    throw new AssistantClientError(payload.code ?? 'ASSISTANT_REQUEST_FAILED', payload.error || 'Não foi possível consultar o Assistente CAFIFA.')
+    throw new AssistantClientError(payload.code ?? 'ASSISTANT_REQUEST_FAILED', payload.error || 'Não foi possível consultar o Assistente Santo Circuito.')
   }
   const parsed = AssistantAnswerSchema.safeParse(payload)
   if (!parsed.success) throw new AssistantClientError('ASSISTANT_RESPONSE_INVALID', 'A resposta do Assistente não pôde ser validada.')

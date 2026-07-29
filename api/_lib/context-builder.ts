@@ -120,7 +120,7 @@ export async function buildOperationalContext({ client, project, userId, route }
     context: {
       request_type: route.intent,
       current_date: date,
-      project: { id: project.id, name: project.name, event_date: project.event_date, status: project.status },
+      project: { id: project.id, name: project.name.replace(/CAFIFA/gi, 'Santo Circuito'), event_date: project.event_date, status: project.status },
       summary,
       areas: areaViews,
       tasks: selectedTasks.slice(0, 20).map((task) => compactTask(task, stagesResult.data?.find((stage) => stage.id === task.stage_id)?.name ?? null)),

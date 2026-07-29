@@ -74,7 +74,7 @@ export function useAssistant() {
     } catch (error) {
       if (controller.signal.aborted || sequence !== requestSequence.current) return false
       if (error instanceof AssistantClientError && ['ASSISTANT_SESSION_MISSING', 'ASSISTANT_SESSION_INVALID'].includes(error.code)) navigate('/login', { replace: true, state: { from: location.pathname } })
-      const content = error instanceof Error ? error.message : 'Não foi possível consultar o Assistente CAFIFA.'
+      const content = error instanceof Error ? error.message : 'Não foi possível consultar o Assistente Santo Circuito.'
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content, failed: true }])
     } finally {
       setLoading(false); activeRequest.current = null

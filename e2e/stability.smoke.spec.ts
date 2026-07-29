@@ -16,6 +16,9 @@ function failOnBrowserErrors(page: Page) {
 test('login público carrega sem exceções', async ({ page }) => {
   const errors = failOnBrowserErrors(page)
   await page.goto('/login')
+  await expect(page).toHaveTitle('Santo Circuito Operações')
+  await expect(page.locator('body')).not.toContainText(/CAFIFA/i)
+  await expect(page.locator('img[src="/santo-circuito-logo.png"]:visible')).toHaveCount(1)
   await expect(page.getByRole('heading', { name: 'Acesse sua conta' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()

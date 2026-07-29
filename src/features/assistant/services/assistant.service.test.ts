@@ -13,7 +13,7 @@ const response = (status: number, payload: unknown) => new Response(JSON.stringi
 const projectId = '11111111-1111-4111-8111-111111111112'
 const session = (accessToken: string) => ({ accessToken, expiresAt: Math.floor(Date.now() / 1_000) + 3_600 })
 
-describe('cliente do Assistente CAFIFA', () => {
+describe('cliente do Assistente Santo Circuito', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('preserva o contexto global exigido pelo fetch nativo do navegador', async () => {

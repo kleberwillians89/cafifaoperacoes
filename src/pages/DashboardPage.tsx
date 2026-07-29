@@ -46,7 +46,7 @@ export function DashboardPage() {
   const alerts = areas.map((area) => ({ area, health: areaHealth(tasks.filter((task) => task.area_id === area.id), relations.data.evidence) })).filter((item) => item.health.level !== 'green').slice(0, 5)
   const recent = relations.data.history.slice(0, 6)
   return <>
-    <PageHeader eyebrow="Visão geral" title="Central de operações" description="Dados em tempo real do projeto CAFIFA." />
+    <PageHeader eyebrow="Visão geral" title="Central de operações" description="Dados em tempo real do projeto Santo Circuito." />
     <section className="metric-grid">{metrics.map((metric, index) => <MetricCard label={metric.label} detail={metric.hint} tone={metric.tone} value={String(metric.value)} icon={icons[index]} to={'to' in metric ? metric.to : undefined} key={metric.label} />)}</section>
     <section className="dashboard-grid">
       <ProgressCard title="Progresso por etapa" subtitle="Avanço do cronograma" items={stageProgress} detailsTo="/app/etapas" />

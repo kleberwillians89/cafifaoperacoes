@@ -5,7 +5,7 @@ import { navigationItems } from './navigation'
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside className="sidebar">
-      <div className="sidebar__header"><div className="brand"><img className="brand__logo" src="/logocafifa.png" alt="Cafifa — movimento coletivo" /><span className="brand__product">Operações</span></div></div>
+      <div className="sidebar__header"><div className="brand"><img className="brand__logo" src="/santo-circuito-logo.png" alt="Santo Circuito" /><span className="brand__product">Operações</span></div></div>
       <nav className="sidebar__navigation" aria-label="Navegação principal">
         <span className="nav-label">Central de operações</span>
         {navigationItems.map(({ label, to, icon: Icon, adminOnly }) => (

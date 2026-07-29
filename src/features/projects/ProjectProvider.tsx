@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { requireSupabase } from '@/features/shared/requireSupabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { Project, ProjectMember } from '@/types/database'
+import { displayProjectName } from '@/lib/branding'
 
 type ProjectValue = { project: Project | null; membership: ProjectMember | null; loading: boolean }
 const ProjectContext = createContext<ProjectValue | null>(null)
@@ -20,7 +21,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const membership = memberships[0]
       const { data: project, error: projectError } = await client.from('projects').select('*').eq('id', membership.project_id).single()
       if (projectError) throw projectError
-      return { project, membership }
+      return { project: { ...project, name: displayProjectName(project.name) }, membership }
     },
   })
   const value = useMemo(() => ({ project: query.data?.project ?? null, membership: query.data?.membership ?? null, loading: query.isLoading }), [query.data, query.isLoading])
