@@ -13,6 +13,7 @@ export type AssistantAnswer = {
   references: AssistantReference[]
   suggested_questions: string[]
   context: { intent: string; focus: { type: string | null; id: string | null; label: string | null } }
+  meta?: { response_source: 'openai' | 'operational_snapshot' | 'operational_fallback'; fallback_used: boolean }
 }
 export type ChatMessage = {
   id: string

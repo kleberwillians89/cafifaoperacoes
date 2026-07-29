@@ -45,12 +45,15 @@ describe('assistant endpoint', () => {
     expect(result.status).toBe(200)
     expect(buildContext).toHaveBeenCalledOnce()
     expect(askModel).toHaveBeenCalledOnce()
+    expect(JSON.stringify(result.payload)).toContain('"response_source":"openai"')
+    expect(JSON.stringify(result.payload)).toContain('"fallback_used":false')
   })
   it('rejeita saída inválida da IA', async () => {
     askModel.mockResolvedValueOnce({ message: 'inválida' } as AssistantResponse)
     const result = await execute({ message: 'Resumo executivo', history: [], previous: null })
     expect(result.status).toBe(200)
     expect(JSON.stringify(result.payload)).toContain('temporariamente indisponível')
+    expect(JSON.stringify(result.payload)).toContain('"fallback_used":true')
   })
   it('retorna erro sanitizado quando OPENAI_API_KEY está ausente', async () => {
     const previousKey = process.env.OPENAI_API_KEY

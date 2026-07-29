@@ -57,19 +57,31 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
       const buildContext = overrides.buildContext ?? buildOperationalContext
       const { context, focus } = await buildContext({ client: auth.client, project: auth.project, userId: auth.user.id, route })
       let answer: AssistantResponse
+      let responseSource: 'openai' | 'operational_snapshot' | 'operational_fallback'
+      let fallbackUsed = false
       if (parsed.data.operational_snapshot) {
         answer = buildOperationalFallback(context, false)
+        responseSource = 'operational_snapshot'
       } else {
         try {
           const askModel = overrides.askModel ?? defaultAskModel()
           answer = AssistantResponseSchema.parse(await askModel({ context, message: parsed.data.message, history: parsed.data.history.slice(-6) }))
+          responseSource = 'openai'
         } catch (error) {
           console.info(JSON.stringify({ request_id: requestId, status: 'ai_fallback', error: sanitizeError(error) }))
           answer = buildOperationalFallback(context, true)
+          responseSource = 'operational_fallback'
+          fallbackUsed = true
         }
       }
+      logAssistantDiagnostic({
+        requestId, authenticated: true, projectAccess: true, contextBuilt: true,
+        openaiCalled: responseSource !== 'operational_snapshot',
+        openaiSuccess: responseSource === 'openai', fallbackUsed, intent: route.intent,
+        duration: Date.now() - startedAt,
+      })
       logRequest({ requestId, ...audit, duration: Date.now() - startedAt, status: 200 })
-      return res.status(200).json({ ...answer, request_id: requestId, context: { intent: route.intent, focus } })
+      return res.status(200).json({ ...answer, request_id: requestId, context: { intent: route.intent, focus }, meta: { response_source: responseSource, fallback_used: fallbackUsed } })
     } catch (error) {
       const status = error instanceof HttpError ? error.status : isTimeout(error) ? 504 : 500
       const publicMessage = error instanceof HttpError ? error.message : status === 504
@@ -135,6 +147,19 @@ function logRuntimeConfiguration() {
     model_configured: Boolean(process.env.OPENAI_MODEL),
   }))
 }
+function logAssistantDiagnostic(record: { requestId: string; authenticated: boolean; projectAccess: boolean; contextBuilt: boolean; openaiCalled: boolean; openaiSuccess: boolean; fallbackUsed: boolean; intent: string; duration: number }) {
+  console.info(JSON.stringify({
+    request_id: record.requestId,
+    authenticated: record.authenticated,
+    project_access: record.projectAccess,
+    context_built: record.contextBuilt,
+    openai_called: record.openaiCalled,
+    openai_success: record.openaiSuccess,
+    fallback_used: record.fallbackUsed,
+    intent: record.intent,
+    duration_ms: record.duration,
+  }))
+}
 function sanitizeError(error: unknown) {
   if (!(error instanceof Error)) return 'unknown_error'
   if (error instanceof HttpError) return `http_${error.status}`
@@ -143,7 +168,7 @@ function sanitizeError(error: unknown) {
   return 'internal_error'
 }
 function logRequest(record: { requestId: string; user_id?: string; project_id?: string; intent?: string; duration: number; status: number; error?: string }) {
-  console.info(JSON.stringify({ request_id: record.requestId, user_id: record.user_id, project_id: record.project_id, intent: record.intent, duration_ms: record.duration, status: record.status, error: record.error }))
+  console.info(JSON.stringify({ request_id: record.requestId, authenticated: Boolean(record.user_id), project_access: Boolean(record.project_id), intent: record.intent, duration_ms: record.duration, status: record.status, error: record.error }))
 }
 
 export default createAssistantHandler()
