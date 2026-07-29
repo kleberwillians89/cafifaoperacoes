@@ -17,6 +17,7 @@ export async function authenticateRequest(authorization: string | undefined): Pr
   if (!authorization?.startsWith('Bearer ')) throw new HttpError(401, 'Sessão ausente ou inválida.')
   const token = authorization.slice(7).trim()
   if (!token) throw new HttpError(401, 'Sessão ausente ou inválida.')
+  if (token.split('.').length !== 3) throw new HttpError(401, 'Sessão expirada ou inválida.')
   const url = process.env.SUPABASE_URL
   const anonKey = process.env.SUPABASE_ANON_KEY
   if (!url || !anonKey) throw new HttpError(500, 'Configuração interna indisponível.')

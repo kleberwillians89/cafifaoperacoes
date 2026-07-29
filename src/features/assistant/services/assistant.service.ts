@@ -1,7 +1,7 @@
 import { requireSupabase } from '@/features/shared/requireSupabase'
 import type { AssistantAnswer, ChatMessage } from '../types'
 
-export async function askAssistant(message: string, history: ChatMessage[], previous: AssistantAnswer['context'] | null, signal?: AbortSignal) {
+export async function askAssistant(message: string, history: ChatMessage[], previous: AssistantAnswer['context'] | null, signal?: AbortSignal, operationalSnapshot = false) {
   const { data } = await requireSupabase().auth.getSession()
   const token = data.session?.access_token
   if (!token) throw new Error('Sua sessão expirou. Entre novamente para consultar o Assistente CAFIFA.')
@@ -10,6 +10,7 @@ export async function askAssistant(message: string, history: ChatMessage[], prev
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({
       message,
+      operational_snapshot: operationalSnapshot,
       history: history.slice(-6).map((item) => ({ role: item.role, content: item.content.slice(0, 4_000) })),
       previous: previous ? {
         intent: previous.intent,

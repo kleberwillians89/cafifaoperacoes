@@ -32,6 +32,7 @@ export const ConversationMessageSchema = z.object({
 export const AssistantRequestSchema = z.object({
   message: z.string().trim().min(1).max(4_000),
   history: z.array(ConversationMessageSchema).max(6).default([]),
+  operational_snapshot: z.boolean().default(false),
   previous: z.object({
     intent: IntentSchema.nullable(),
     entity_type: z.enum(['area', 'task', 'milestone', 'risk']).nullable(),

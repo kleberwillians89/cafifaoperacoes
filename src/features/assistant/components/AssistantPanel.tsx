@@ -12,7 +12,7 @@ export function AssistantPanel({ fullPage = false, onClose }: { fullPage?: boole
   return <section className={`assistant-panel ${fullPage ? 'assistant-panel--page' : ''}`} aria-label="Assistente CAFIFA">
     <header><div className="assistant-identity"><i><Sparkles size={19}/></i><div><strong>Assistente CAFIFA</strong><span>Inteligência operacional · somente leitura</span></div></div>{onClose && <button onClick={onClose} aria-label="Fechar Assistente CAFIFA"><X size={20}/></button>}</header>
     <div className="assistant-conversation">
-      {!messages.length && <div className="assistant-welcome"><span>Central Operacional CAFIFA</span><h2>Como posso ajudar na operação?</h2><p>Consulto tarefas, áreas, prazos, riscos, marcos e evidências respeitando seu acesso ao projeto.</p><div className="assistant-suggestions">{INITIAL_QUESTIONS.map((question) => <button onClick={() => void send(question)} key={question}>{question}</button>)}</div></div>}
+      <div className="assistant-welcome"><span>Central Operacional CAFIFA</span><h2>Inteligência para a operação</h2><p>Inteligência operacional para acompanhar tarefas, áreas, prazos, responsáveis, riscos e marcos do evento.</p>{!messages.length && <div className="assistant-suggestions">{INITIAL_QUESTIONS.map((question) => <button onClick={() => void send(question)} key={question}>{question}</button>)}</div>}</div>
       {messages.map((message) => <AssistantMessage message={message} onSuggestion={(value) => void send(value)} key={message.id}/>)}
       {loading && <div className="assistant-thinking"><span/><span/><span/> Cruzando dados da operação</div>}
       {messages.at(-1)?.failed && <button className="assistant-retry" onClick={retry}><RotateCcw size={14}/> Tentar novamente</button>}

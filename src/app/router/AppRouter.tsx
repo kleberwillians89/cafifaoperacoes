@@ -17,6 +17,7 @@ export function AppRouter() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
       <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
+      <Route path="/assistente" element={<Navigate to="/app/assistente" replace />} />
       <Route element={<DevelopmentAuthGuard />}>
         <Route path="/app" element={<AppShell />}>
           <Route index element={<Navigate to="/app/dashboard" replace />} />
