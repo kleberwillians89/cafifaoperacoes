@@ -9,7 +9,7 @@ export async function getOperationalRelations(projectId: string) {
   const { data: projectTasks, error: taskError } = await client
     .from('tasks').select('id').eq('project_id', projectId).is('archived_at', null)
   if (taskError) throw taskError
-  const taskIds = projectTasks.map((task) => task.id)
+  const taskIds = (projectTasks ?? []).map((task) => task.id)
   const [
     membersResult, profilesResult, evidenceResult, categoriesResult, milestoneLinksResult,
     assigneesResult, checklistResult, commentsResult, historyResult,
@@ -28,14 +28,14 @@ export async function getOperationalRelations(projectId: string) {
     || milestoneLinksResult.error || assigneesResult.error || checklistResult.error || commentsResult.error || historyResult.error
   if (error) throw error
   return {
-    members: membersResult.data as ProjectMember[],
-    profiles: profilesResult.data as Profile[],
-    evidence: evidenceResult.data as EvidenceItem[],
-    categories: categoriesResult.data as EvidenceCategory[],
-    milestoneLinks: milestoneLinksResult.data as TaskMilestone[],
-    assignees: assigneesResult.data as TaskAssignee[],
-    checklist: checklistResult.data as ChecklistItem[],
-    comments: commentsResult.data as TaskComment[],
-    history: historyResult.data as TaskHistory[],
+    members: (membersResult.data ?? []) as ProjectMember[],
+    profiles: (profilesResult.data ?? []) as Profile[],
+    evidence: (evidenceResult.data ?? []) as EvidenceItem[],
+    categories: (categoriesResult.data ?? []) as EvidenceCategory[],
+    milestoneLinks: (milestoneLinksResult.data ?? []) as TaskMilestone[],
+    assignees: (assigneesResult.data ?? []) as TaskAssignee[],
+    checklist: (checklistResult.data ?? []) as ChecklistItem[],
+    comments: (commentsResult.data ?? []) as TaskComment[],
+    history: (historyResult.data ?? []) as TaskHistory[],
   }
 }

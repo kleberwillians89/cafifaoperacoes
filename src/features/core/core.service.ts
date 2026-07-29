@@ -12,7 +12,13 @@ export async function getProjectData(projectId: string) {
   ])
   const error = tasks.error || areas.error || stages.error || milestones.error || risks.error
   if (error) throw error
-  return { tasks: tasks.data as Task[], areas: areas.data as Area[], stages: stages.data as ProjectStage[], milestones: milestones.data as Milestone[], risks: risks.data as ProjectRisk[] }
+  return {
+    tasks: (tasks.data ?? []) as Task[],
+    areas: (areas.data ?? []) as Area[],
+    stages: (stages.data ?? []) as ProjectStage[],
+    milestones: (milestones.data ?? []) as Milestone[],
+    risks: (risks.data ?? []) as ProjectRisk[],
+  }
 }
 
 export async function listMembers(projectId: string) {

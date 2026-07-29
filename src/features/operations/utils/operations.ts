@@ -16,6 +16,8 @@ export function taskOperationalScore(task: Task, today = new Date().toISOString(
 }
 
 export function areaHealth(tasks: Task[], evidence: EvidenceItem[]) {
+  tasks = Array.isArray(tasks) ? tasks : []
+  evidence = Array.isArray(evidence) ? evidence : []
   const overdue = tasks.filter((task) => isOverdueTask(task))
   const criticalOverdue = overdue.filter((task) => task.priority === 'critical')
   const blocked = tasks.filter((task) => task.status === 'blocked')

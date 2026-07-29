@@ -1,30 +1,31 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ComponentType, type LazyExoticComponent } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { DevelopmentAuthGuard } from '@/features/auth/DevelopmentAuthGuard'
 import { ForgotPasswordPage, LoginPage, ResetPasswordPage } from '@/pages/AuthPages'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { LoadingState } from '@/components/ui/LoadingState'
+import { loadNamedPage } from './lazy-with-retry'
 
-const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
-const StagesPage = lazy(() => import('@/pages/StagesPage').then((module) => ({ default: module.StagesPage })))
-const TasksPage = lazy(() => import('@/pages/TasksPage').then((module) => ({ default: module.TasksPage })))
-const TaskDetailPage = lazy(() => import('@/pages/TaskDetailPage').then((module) => ({ default: module.TaskDetailPage })))
-const AssistantPage = lazy(() => import('@/pages/AssistantPage').then((module) => ({ default: module.AssistantPage })))
-const OperationsCenterPage = lazy(() => import('@/pages/OperationsCenterPage').then((module) => ({ default: module.OperationsCenterPage })))
+const DashboardPage = lazy(() => loadNamedPage(() => import('@/pages/DashboardPage'), 'DashboardPage'))
+const StagesPage = lazy(() => loadNamedPage(() => import('@/pages/StagesPage'), 'StagesPage'))
+const TasksPage = lazy(() => loadNamedPage(() => import('@/pages/TasksPage'), 'TasksPage')) as LazyExoticComponent<ComponentType<{ mine?: boolean }>>
+const TaskDetailPage = lazy(() => loadNamedPage(() => import('@/pages/TaskDetailPage'), 'TaskDetailPage'))
+const AssistantPage = lazy(() => loadNamedPage(() => import('@/pages/AssistantPage'), 'AssistantPage'))
+const OperationsCenterPage = lazy(() => loadNamedPage(() => import('@/pages/OperationsCenterPage'), 'OperationsCenterPage'))
 const management = () => import('@/pages/ManagementPages')
-const ProjectPage = lazy(() => management().then((module) => ({ default: module.ProjectPage })))
-const TeamPage = lazy(() => management().then((module) => ({ default: module.TeamPage })))
-const AreasPage = lazy(() => management().then((module) => ({ default: module.AreasPage })))
-const MilestonesPage = lazy(() => management().then((module) => ({ default: module.MilestonesPage })))
-const RisksPage = lazy(() => management().then((module) => ({ default: module.RisksPage })))
-const EvidencePage = lazy(() => management().then((module) => ({ default: module.EvidencePage })))
-const HistoryPage = lazy(() => management().then((module) => ({ default: module.HistoryPage })))
-const AdministrationPage = lazy(() => management().then((module) => ({ default: module.AdministrationPage })))
+const ProjectPage = lazy(() => loadNamedPage(management, 'ProjectPage'))
+const TeamPage = lazy(() => loadNamedPage(management, 'TeamPage'))
+const AreasPage = lazy(() => loadNamedPage(management, 'AreasPage'))
+const MilestonesPage = lazy(() => loadNamedPage(management, 'MilestonesPage'))
+const RisksPage = lazy(() => loadNamedPage(management, 'RisksPage'))
+const EvidencePage = lazy(() => loadNamedPage(management, 'EvidencePage'))
+const HistoryPage = lazy(() => loadNamedPage(management, 'HistoryPage'))
+const AdministrationPage = lazy(() => loadNamedPage(management, 'AdministrationPage'))
 const details = () => import('@/pages/OperationalDetailPages')
-const AreaDetailPage = lazy(() => details().then((module) => ({ default: module.AreaDetailPage })))
-const MilestoneDetailPage = lazy(() => details().then((module) => ({ default: module.MilestoneDetailPage })))
-const RiskDetailPage = lazy(() => details().then((module) => ({ default: module.RiskDetailPage })))
+const AreaDetailPage = lazy(() => loadNamedPage(details, 'AreaDetailPage'))
+const MilestoneDetailPage = lazy(() => loadNamedPage(details, 'MilestoneDetailPage'))
+const RiskDetailPage = lazy(() => loadNamedPage(details, 'RiskDetailPage'))
 
 export function AppRouter() {
   return (
