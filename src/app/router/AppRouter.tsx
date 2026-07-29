@@ -9,6 +9,7 @@ import { TasksPage } from '@/pages/TasksPage'
 import { TaskDetailPage } from '@/pages/TaskDetailPage'
 import { AdministrationPage, AreasPage, EvidencePage, HistoryPage, MilestonesPage, ProjectPage, RisksPage, TeamPage } from '@/pages/ManagementPages'
 import { AssistantPage } from '@/pages/AssistantPage'
+import { AreaDetailPage, MilestoneDetailPage, RiskDetailPage } from '@/pages/OperationalDetailPages'
 
 export function AppRouter() {
   return (
@@ -31,8 +32,11 @@ export function AppRouter() {
           <Route path="calendario" element={<TasksPage />} />
           <Route path="pessoas" element={<TeamPage />} />
           <Route path="areas" element={<AreasPage />} />
+          <Route path="areas/:areaId" element={<AreaDetailPage />} />
           <Route path="marcos" element={<MilestonesPage />} />
+          <Route path="marcos/:milestoneId" element={<MilestoneDetailPage />} />
           <Route path="riscos" element={<RisksPage />} />
+          <Route path="riscos/:riskId" element={<RiskDetailPage />} />
           <Route path="arquivos" element={<EvidencePage />} />
           <Route path="historico" element={<HistoryPage />} />
           <Route path="administracao" element={<AdministrationPage />} />

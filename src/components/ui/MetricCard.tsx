@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 type Props = {
   label: string
@@ -6,10 +7,11 @@ type Props = {
   detail: string
   tone?: 'blue' | 'gold' | 'success' | 'danger' | 'neutral'
   icon: LucideIcon
+  to?: string
 }
 
-export function MetricCard({ label, value, detail, tone = 'neutral', icon: Icon }: Props) {
-  return (
+export function MetricCard({ label, value, detail, tone = 'neutral', icon: Icon, to }: Props) {
+  const content = (
     <article className={`metric-card tone-${tone}`}>
       <div className="metric-card__top">
         <span>{label}</span>
@@ -19,4 +21,5 @@ export function MetricCard({ label, value, detail, tone = 'neutral', icon: Icon 
       <small>{detail}</small>
     </article>
   )
+  return to ? <Link className="metric-card-link" to={to}>{content}</Link> : content
 }
