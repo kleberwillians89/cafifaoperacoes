@@ -61,8 +61,7 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
       const { context, focus, counts = {} } = await buildContext({ client: auth.client, project: auth.project, userId: auth.user.id, route })
       if (!Number(counts.tasks ?? context.tasks.length) && !Number(counts.areas ?? context.areas.length)) throw new HttpError(422, 'Não há contexto operacional disponível para este projeto.', 'ASSISTANT_CONTEXT_EMPTY', 'context')
       let answer: AssistantResponse
-      let responseSource: 'openai' | 'operational_snapshot' | 'operational_fallback'
-      let fallbackUsed = false
+      let responseSource: 'openai' | 'operational_snapshot'
       if (parsed.data.operational_snapshot) {
         answer = buildOperationalFallback(context, false)
         responseSource = 'operational_snapshot'
@@ -72,22 +71,23 @@ export function createAssistantHandler(overrides: Partial<Dependencies> = {}) {
           answer = AssistantResponseSchema.parse(await askModel({ context, message: parsed.data.message, history: parsed.data.history.slice(-6) }))
           responseSource = 'openai'
         } catch (error) {
-          const code = error instanceof HttpError ? error.code : error instanceof Error && /invalid_model_output|Zod/i.test(error.message) ? 'ASSISTANT_OPENAI_PARSE_FAILED' : 'ASSISTANT_OPENAI_REQUEST_FAILED'
-          console.info(JSON.stringify({ event: 'cafifa_assistant_error', request_id: requestId, stage: error instanceof HttpError ? error.stage : 'openai', code, status: error instanceof HttpError ? error.status : 502 }))
-          answer = buildOperationalFallback(context, true)
-          responseSource = 'operational_fallback'
-          fallbackUsed = true
+          if (error instanceof HttpError) throw error
+          if (isTimeout(error)) throw new HttpError(504, 'A consulta demorou mais que o esperado. Tente novamente.', 'ASSISTANT_OPENAI_REQUEST_FAILED', 'openai')
+          if (error instanceof Error && (/invalid_model_output|Zod/i.test(error.message) || error.name === 'ZodError')) {
+            throw new HttpError(502, 'A resposta inteligente não pôde ser validada.', 'ASSISTANT_OPENAI_PARSE_FAILED', 'parse')
+          }
+          throw new HttpError(502, 'Não foi possível obter a resposta inteligente agora. Tente novamente.', 'ASSISTANT_OPENAI_REQUEST_FAILED', 'openai')
         }
       }
       logAssistantDiagnostic({
         requestId, authenticated: true, projectAccess: true, contextBuilt: true,
         openaiCalled: responseSource !== 'operational_snapshot',
-        openaiSuccess: responseSource === 'openai', fallbackUsed, intent: route.intent,
+        openaiSuccess: responseSource === 'openai', fallbackUsed: false, intent: route.intent,
         duration: Date.now() - startedAt,
       })
       logRequest({ requestId, ...audit, duration: Date.now() - startedAt, status: 200 })
-      console.info(JSON.stringify({ event: 'cafifa_assistant_request', request_id: requestId, authenticated: true, project_validated: true, context_built: true, context_counts: counts, openai_called: responseSource !== 'operational_snapshot', openai_success: responseSource === 'openai', source: responseSource === 'operational_fallback' ? 'fallback' : responseSource, status: 200, duration_ms: Date.now() - startedAt }))
-      return res.status(200).json({ ...answer, source: responseSource === 'operational_fallback' ? 'fallback' : responseSource, request_id: requestId, context: { intent: route.intent, focus }, meta: { response_source: responseSource, fallback_used: fallbackUsed } })
+      console.info(JSON.stringify({ event: 'cafifa_assistant_request', request_id: requestId, authenticated: true, project_validated: true, context_built: true, context_counts: counts, openai_called: responseSource !== 'operational_snapshot', openai_success: responseSource === 'openai', source: responseSource, status: 200, duration_ms: Date.now() - startedAt }))
+      return res.status(200).json({ ...answer, source: responseSource, request_id: requestId, context: { intent: route.intent, focus }, meta: { response_source: responseSource, fallback_used: false } })
     } catch (error) {
       const status = error instanceof HttpError ? error.status : isTimeout(error) ? 504 : 500
       const publicMessage = error instanceof HttpError ? error.message : status === 504

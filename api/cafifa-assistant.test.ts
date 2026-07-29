@@ -55,15 +55,15 @@ describe('assistant endpoint', () => {
   it('rejeita saída inválida da IA', async () => {
     askModel.mockResolvedValueOnce({ message: 'inválida' } as AssistantResponse)
     const result = await execute({ message: 'Resumo executivo', history: [], previous: null })
-    expect(result.status).toBe(200)
-    expect(JSON.stringify(result.payload)).toContain('temporariamente indisponível')
-    expect(JSON.stringify(result.payload)).toContain('"fallback_used":true')
+    expect(result.status).toBe(502)
+    expect(JSON.stringify(result.payload)).toContain('não pôde ser validada')
+    expect(JSON.stringify(result.payload)).not.toContain('fallback')
   })
   it('retorna erro sanitizado quando OPENAI_API_KEY está ausente', async () => {
     const previousKey = process.env.OPENAI_API_KEY
     delete process.env.OPENAI_API_KEY
     const result = await execute({ message: 'Resumo executivo', history: [], previous: null }, 'Bearer valid', createAssistantHandler({ authenticate, buildContext }))
-    expect(result.status).toBe(200)
+    expect(result.status).toBe(500)
     expect(JSON.stringify(result.payload)).toContain('temporariamente indisponível')
     expect(JSON.stringify(result.payload)).not.toContain('OPENAI_API_KEY')
     if (previousKey) process.env.OPENAI_API_KEY = previousKey
@@ -71,8 +71,8 @@ describe('assistant endpoint', () => {
   it('trata timeout sem revelar detalhes', async () => {
     askModel.mockRejectedValueOnce(new Error('Request timed out'))
     const result = await execute({ message: 'Resumo executivo', history: [], previous: null })
-    expect(result.status).toBe(200)
-    expect(JSON.stringify(result.payload)).toContain('temporariamente indisponível')
+    expect(result.status).toBe(504)
+    expect(JSON.stringify(result.payload)).toContain('demorou mais')
     expect(JSON.stringify(result.payload)).not.toContain('Request timed out')
   })
   it('entrega snapshot operacional sem chamar a IA', async () => {

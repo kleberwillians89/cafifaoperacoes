@@ -1,6 +1,8 @@
 import { requireSupabase } from '@/features/shared/requireSupabase'
 import { AssistantAnswerSchema, AssistantRequestSchema, type AssistantAnswer, type ChatMessage } from '../types'
 
+export const browserFetch: typeof globalThis.fetch = (input, init) => globalThis.fetch(input, init)
+
 export async function askAssistant(projectId: string, message: string, history: ChatMessage[], previous: AssistantAnswer['context'] | null, signal?: AbortSignal, operationalSnapshot = false) {
   const auth = requireSupabase().auth
   return executeAssistantRequest({
@@ -14,7 +16,7 @@ export async function askAssistant(projectId: string, message: string, history: 
       if (error) return null
       return data.session ? { accessToken: data.session.access_token, expiresAt: data.session.expires_at ?? null } : null
     },
-    fetcher: fetch,
+    fetcher: browserFetch,
   }, projectId, message, history, previous, signal, operationalSnapshot)
 }
 
